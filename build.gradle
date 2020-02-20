@@ -15,6 +15,10 @@ repositories {
     // Use jcenter for resolving your dependencies.
     // You can declare any Maven/Ivy/file repository here.
     jcenter()
+    maven {
+    name "elastic"
+    url "https://artifacts.elastic.co/maven"
+  }
 }
 
 dependencies {
@@ -26,4 +30,18 @@ dependencies {
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
+    
+    // log4j 
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.0'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.0'
+    
+    // apache string utils
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+    
+    // elasticsearch low level client
+    compile 'org.elasticsearch.client:elasticsearch-rest-client:7.4.2'
+    // elasticsearch high level client
+    compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.4.2'
+    // xpack
+    compile 'org.elasticsearch.client:x-pack-transport:7.4.2'
 }
