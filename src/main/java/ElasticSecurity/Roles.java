@@ -1,5 +1,7 @@
 package ElasticSecurity;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.http.HttpHost;
@@ -12,6 +14,10 @@ import org.elasticsearch.client.security.DeleteRoleRequest;
 import org.elasticsearch.client.security.DeleteRoleResponse;
 import org.elasticsearch.client.security.GetRolesRequest;
 import org.elasticsearch.client.security.GetRolesResponse;
+import org.elasticsearch.client.security.PutRoleRequest;
+import org.elasticsearch.client.security.PutRoleResponse;
+import org.elasticsearch.client.security.RefreshPolicy;
+import org.elasticsearch.client.security.user.privileges.ApplicationResourcePrivileges;
 import org.elasticsearch.client.security.user.privileges.Role;
 
 public class Roles {
@@ -21,11 +27,16 @@ public class Roles {
 	
 	public static void main(String... args) {
 		Roles r = new Roles();
-		List<Role> roles = r.getRoles("clicks_admin");
-//		for(Role role : roles)
-//			System.out.println(role);
 		
-		r.deleteRolesAsync("clicks_admin");
+		//r.deleteRolesAsync("clicks_admin");
+		
+		List<String> appPrivileges = Arrays.asList("read","write","send");
+		List<String> appResources = Arrays.asList("dashboard","event center","report");
+		
+		System.out.println(r.createRole("testPutRole2","testApp", appPrivileges, appResources));
+		List<Role> roles = r.getRoles();
+		for(Role role : roles)
+		System.out.println(role);
 				
 	}
 	
@@ -78,6 +89,25 @@ public class Roles {
 			return false;
 		}
 		
+	}
+	
+	public boolean createRole(String roleName, String applicationName, List<String> appPrivileges,List<String> appResources ) {
+		boolean result = false;
+		
+		try {
+		 Role role = Role.builder()
+			    .name(roleName)
+			    .clusterPrivileges("MONITOR","MANAGE")
+			    .applicationResourcePrivileges(new ApplicationResourcePrivileges(applicationName,appPrivileges,appResources))
+			    .build();
+			 PutRoleRequest request = new PutRoleRequest(role, RefreshPolicy.NONE);
+			 PutRoleResponse response = client.security().putRole(request, RequestOptions.DEFAULT);
+			 result = response.isCreated();
+		}catch(Exception e) {
+			System.out.println("create role exception: "+e.getMessage());
+			
+		}
+		return result;	
 	}
 
 
