@@ -1,4 +1,4 @@
-package com.resolve.sso;
+package com.resolve.sso.services.impl;
 
 import java.util.Set;
 

@@ -1,4 +1,4 @@
-package com.resolve.sso;
+package com.resolve.sso.services.impl;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

@@ -1,4 +1,4 @@
-package com.resolve.sso.controller;
+package com.resolve.sso.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

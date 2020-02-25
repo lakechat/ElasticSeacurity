@@ -1,4 +1,4 @@
-package com.resolve.sso;
+package com.resolve.sso.utils;
 
 import org.apache.http.HttpHost;
 import org.apache.http.RequestLine;
