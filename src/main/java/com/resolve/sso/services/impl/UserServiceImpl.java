@@ -13,22 +13,22 @@ import org.elasticsearch.client.security.GetUsersRequest;
 import org.elasticsearch.client.security.GetUsersResponse;
 import org.elasticsearch.client.security.user.User;
 
-public class Users {
+public class UserServiceImpl {
 
-	private static final Logger logger = LogManager.getLogger(Users.class);
+	private static final Logger logger = LogManager.getLogger(UserServiceImpl.class);
 	private static final HttpHost host = new HttpHost("localhost",9200,"http");
 	
 	protected RestHighLevelClient client;
 	
 	public static void main(String[] args) {
-		Users  user = new Users();
+		UserServiceImpl  user = new UserServiceImpl();
 		Set<User> users = user.getUser(null);
 		
 		for(User u : users)
 			System.out.println(u.getRoles());
 	}
 	
-	public Users() {
+	public UserServiceImpl() {
 		client = new RestHighLevelClient(RestClient.builder(host) );
 	}
 	

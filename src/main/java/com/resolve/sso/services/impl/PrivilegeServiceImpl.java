@@ -20,8 +20,8 @@ import org.elasticsearch.client.security.PutPrivilegesResponse;
 import org.elasticsearch.client.security.RefreshPolicy;
 import org.elasticsearch.client.security.user.privileges.ApplicationPrivilege;
 
-public class Privileges {
-	private static final Logger logger = LogManager.getLogger(Privileges.class);
+public class PrivilegeServiceImpl {
+	private static final Logger logger = LogManager.getLogger(PrivilegeServiceImpl.class);
 	private static final HttpHost host = new HttpHost("localhost",9200,"http");
 	protected RestHighLevelClient client;
 	List<String> appPrivileges = Arrays.asList("read","write","send");
@@ -29,7 +29,7 @@ public class Privileges {
 	
 	
 	public static void main(String... args) {
-		Privileges p = new Privileges();
+		PrivilegeServiceImpl p = new PrivilegeServiceImpl();
 		p.createPrivileges(null);
 		
 		Set<ApplicationPrivilege> ps = p.getPrivileges("Meridian",null);
@@ -38,7 +38,7 @@ public class Privileges {
 			System.out.println(ap.getName());
 	}
 	
-	public Privileges() {
+	public PrivilegeServiceImpl() {
 		client = new RestHighLevelClient(RestClient.builder(host) );
 	}
 	

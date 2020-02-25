@@ -20,13 +20,13 @@ import org.elasticsearch.client.security.RefreshPolicy;
 import org.elasticsearch.client.security.user.privileges.ApplicationResourcePrivileges;
 import org.elasticsearch.client.security.user.privileges.Role;
 
-public class Roles {
+public class RoleServiceImpl {
 	
 	private static final HttpHost host = new HttpHost("localhost", 9200, "http");
 	protected RestHighLevelClient client;
 	
 	public static void main(String... args) {
-		Roles r = new Roles();
+		RoleServiceImpl r = new RoleServiceImpl();
 		
 		//r.deleteRolesAsync("clicks_admin");
 		
@@ -40,7 +40,7 @@ public class Roles {
 				
 	}
 	
-	public Roles() {
+	public RoleServiceImpl() {
 		client = new RestHighLevelClient(RestClient.builder(host) );
 	}
 	
