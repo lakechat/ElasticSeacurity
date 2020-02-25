@@ -1,4 +1,4 @@
-package ElasticSecurity;
+package com.resolve.sso;
 
 import org.apache.http.HttpHost;
 import org.apache.http.RequestLine;

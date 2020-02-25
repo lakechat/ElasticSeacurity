@@ -1,4 +1,4 @@
-package ElasticSecurity;
+package com.resolve.sso;
 
 import java.util.ArrayList;
 import java.util.Arrays;

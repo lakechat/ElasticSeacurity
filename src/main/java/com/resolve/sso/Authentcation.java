@@ -1,4 +1,4 @@
-package ElasticSecurity;
+package com.resolve.sso;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

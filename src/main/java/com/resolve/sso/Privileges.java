@@ -1,10 +1,9 @@
-package ElasticSecurity;
+package com.resolve.sso;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,9 +16,9 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.security.GetPrivilegesRequest;
 import org.elasticsearch.client.security.GetPrivilegesResponse;
 import org.elasticsearch.client.security.PutPrivilegesRequest;
+import org.elasticsearch.client.security.PutPrivilegesResponse;
 import org.elasticsearch.client.security.RefreshPolicy;
 import org.elasticsearch.client.security.user.privileges.ApplicationPrivilege;
-import org.elasticsearch.client.security.user.privileges.ApplicationResourcePrivileges;
 
 public class Privileges {
 	private static final Logger logger = LogManager.getLogger(Privileges.class);
@@ -32,7 +31,8 @@ public class Privileges {
 	public static void main(String... args) {
 		Privileges p = new Privileges();
 		p.createPrivileges(null);
-		Set<ApplicationPrivilege> ps = p.getPrivileges(null,null);
+		
+		Set<ApplicationPrivilege> ps = p.getPrivileges("Meridian",null);
 		if(ps!=null)
 		for(ApplicationPrivilege ap : ps)
 			System.out.println(ap.getName());
@@ -67,28 +67,28 @@ public class Privileges {
 		}
 	}
 	
+	//application name must start with lower case letters
 	public void createPrivileges(List<ApplicationPrivilege> aps) {
 		try {
 			final List<ApplicationPrivilege> privileges = new ArrayList<>();
-			privileges.add(ApplicationPrivilege.builder()
-			    .application("Meridian")
-			    .privilege("all")
-			    .actions("action:login","action:read","action:write")
-			    .metadata(Collections.singletonMap("description", "sample"))
-			    .build());
-			privileges.add(ApplicationPrivilege.builder()
-			    .application("FireStorm")
-			    .privilege("write")
-			    .actions("action:write")
-			    .build());
-			privileges.add(ApplicationPrivilege.builder()
-				    .application("FireStorm")
-				    .privilege("read")
-				    .actions("action:read")
-				    .build());
-			final PutPrivilegesRequest putPrivilegesRequest = new PutPrivilegesRequest(privileges, RefreshPolicy.IMMEDIATE);			
-		}catch(Exception e) {
-			
+			privileges.add(ApplicationPrivilege.builder().application("meridian").privilege("all")
+					.actions("action:login","action:write","action:read","action:delete")
+					.metadata(Collections.singletonMap("description", "sample")).build());
+			privileges.add(ApplicationPrivilege.builder().application("fireStorm").privilege("write")
+					.actions("action:write_update").build());
+			privileges.add(ApplicationPrivilege.builder().application("fireStorm").privilege("read")
+					.actions("action:read").build());
+			final PutPrivilegesRequest putPrivilegesRequest = new PutPrivilegesRequest(privileges,
+					RefreshPolicy.IMMEDIATE);
+			final PutPrivilegesResponse putPrivilegesResponse = client.security().putPrivileges(putPrivilegesRequest,
+					RequestOptions.DEFAULT);
+
+			final boolean status = putPrivilegesResponse.wasCreated("meridian", "all");
+			final boolean status2 = putPrivilegesResponse.wasCreated("fireStorm", "write");
+			final boolean status3 = putPrivilegesResponse.wasCreated("fireStorm", "read");
+			System.out.println("application privileges create: "+status);
+		} catch (Exception e) {
+			System.out.println("create application privileges exception: "+e.getMessage());
 		}
 	}
 
