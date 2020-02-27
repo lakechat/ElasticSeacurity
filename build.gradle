@@ -50,6 +50,8 @@ dependencies {
     // apache string utils
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
     
+    
+    compile 'org.elasticsearch:elasticsearch:7.4.2'
     // elasticsearch low level client
     compile 'org.elasticsearch.client:elasticsearch-rest-client:7.4.2'
     // elasticsearch high level client

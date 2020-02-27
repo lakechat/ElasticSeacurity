@@ -13,10 +13,11 @@ import org.elasticsearch.client.security.GetUsersRequest;
 import org.elasticsearch.client.security.GetUsersResponse;
 import org.elasticsearch.client.security.user.User;
 
+import com.resolve.sso.utils.ElasticSearchHandler;
+
 public class UserServiceImpl {
 
 	private static final Logger logger = LogManager.getLogger(UserServiceImpl.class);
-	private static final HttpHost host = new HttpHost("localhost",9200,"http");
 	
 	protected RestHighLevelClient client;
 	
@@ -26,10 +27,11 @@ public class UserServiceImpl {
 		
 		for(User u : users)
 			System.out.println(u.getRoles());
+		
 	}
 	
 	public UserServiceImpl() {
-		client = new RestHighLevelClient(RestClient.builder(host) );
+		client = ElasticSearchHandler.getHighLevelClient();
 	}
 	
 	public Set<User> getUser(String userName) {

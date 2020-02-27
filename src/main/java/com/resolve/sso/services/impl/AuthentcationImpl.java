@@ -22,9 +22,9 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestClientBuilder.HttpClientConfigCallback;
 
-public class Authentcation {
+public class AuthentcationImpl {
 	
-	private static final Logger logger = LogManager.getLogger(Authentcation.class);
+	private static final Logger logger = LogManager.getLogger(AuthentcationImpl.class);
 	private static RestClient client;
 	private static final String host = "localhost";
 	private static final int port = 9200;
