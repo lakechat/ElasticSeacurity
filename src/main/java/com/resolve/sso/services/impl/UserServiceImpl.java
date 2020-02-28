@@ -2,6 +2,7 @@ package com.resolve.sso.services.impl;
 
 import java.util.Set;
 
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.logging.log4j.LogManager;
@@ -12,12 +13,21 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.security.GetUsersRequest;
 import org.elasticsearch.client.security.GetUsersResponse;
 import org.elasticsearch.client.security.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.resolve.sso.entities.auth.Realm;
+import com.resolve.sso.entities.user.UserAuthenticationRequest;
+import com.resolve.sso.entities.user.UserAuthenticationResult;
+import com.resolve.sso.services.AuthenticationService;
+import com.resolve.sso.services.UserService;
 import com.resolve.sso.utils.ElasticSearchHandler;
 
-public class UserServiceImpl {
+public class UserServiceImpl implements UserService{
 
 	private static final Logger logger = LogManager.getLogger(UserServiceImpl.class);
+	
+	@Autowired
+	private AuthenticationService authService;
 	
 	protected RestHighLevelClient client;
 	
@@ -48,6 +58,13 @@ public class UserServiceImpl {
 			logger.error("getUser("+userName+") exception: "+e.getMessage());
 			return null;
 		}
+	}
+
+	@Override
+	public UserAuthenticationResult authenticateUser(UserAuthenticationRequest authRequest) {
+		
+		boolean result = authService.authenticateUser(authRequest);
+		return null;
 	}
 	
 	

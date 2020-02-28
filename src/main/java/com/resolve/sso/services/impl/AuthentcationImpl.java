@@ -22,7 +22,11 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestClientBuilder.HttpClientConfigCallback;
 
-public class AuthentcationImpl {
+import com.resolve.sso.entities.auth.Realm;
+import com.resolve.sso.entities.user.UserAuthenticationRequest;
+import com.resolve.sso.services.AuthenticationService;
+
+public class AuthentcationImpl implements AuthenticationService{
 	
 	private static final Logger logger = LogManager.getLogger(AuthentcationImpl.class);
 	private static RestClient client;
@@ -31,11 +35,31 @@ public class AuthentcationImpl {
 	
 	private static final HttpHost httpHost = new HttpHost(host,port);
 	
-	public static void main(String[] args) {
-		basicAuth("user1", "password");
+//	public static void main(String[] args) {
+//		basicAuth("user1", "password");
+//	}
+	
+	@Override
+	public boolean authenticateUser(UserAuthenticationRequest authRequest) {
+		String realm = authRequest.getRealm();
+		String userName = authRequest.getUserName();
+		String password = authRequest.getPassword();
+		boolean result = false;
+		switch(realm) {
+		case Realm.NATIVE.getDisplayName():
+			result = basicAuth(userName, password);
+			break;
+		default:
+			result = basicAuth(userName, password);
+			break;
+		}
+		
+		return result;
+		
+		
 	}
 	
-	public static boolean basicAuth(String user, String passwd) {
+	public boolean basicAuth(String user, String passwd) {
 		boolean result = false;
 		final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 		credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(user,passwd));
@@ -56,7 +80,7 @@ public class AuthentcationImpl {
 		return result;
 	}
 	
-	public static boolean tokenAuth(String token) {
+	public  boolean tokenAuth(String token) {
 		boolean result = false;
 		StringBuffer sb = new StringBuffer("Bearer ").append(token);
 		RestClientBuilder builder = RestClient.builder(httpHost);
@@ -69,7 +93,7 @@ public class AuthentcationImpl {
 		return result;
 	}
 	
-	public static boolean apiKeyAuth(String keyId, String keySecret) {
+	public  boolean apiKeyAuth(String keyId, String keySecret) {
 		boolean result = false;
 		String apiKey = new StringBuffer(keyId).append(":").append(keySecret).toString();
 		String apiKeyAuth = Base64.getEncoder().encodeToString(apiKey.getBytes(StandardCharsets.UTF_8));
@@ -85,7 +109,7 @@ public class AuthentcationImpl {
 		return result;
 	}
 	
-	private static void closeClient() {
+	private  void closeClient() {
 		if(client != null) {
 			try {
 				client.close();
@@ -95,7 +119,7 @@ public class AuthentcationImpl {
 		}
 	}
 	
-	private static boolean test() {
+	private  boolean test() {
 		try {
 			Request request = new Request("GET", "/");
 			Response response = client.performRequest(request);

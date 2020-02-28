@@ -29,9 +29,10 @@ public class AuthenticationController {
 	
 	public UserAuthenticationResult authenticateUser(
 			@RequestBody(required=true) UserAuthenticationRequest authRequest) {
+		    
+		UserAuthenticationResult authResult = userService.authenticateUser(authRequest);
 		
-		
-		return null;
+		return authResult;
 		
 	}
 

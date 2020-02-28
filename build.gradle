@@ -58,6 +58,14 @@ dependencies {
     compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.4.2'
     // xpack
     compile 'org.elasticsearch.client:x-pack-transport:7.4.2'
+    
+   // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+	compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.1'
+	
+	// https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-joda
+	compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.0.4'
+	
+   
 }
 
 test {
