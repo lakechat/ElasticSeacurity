@@ -1,15 +1,44 @@
 package com.resolve.sso.entities.user;
 
+import org.elasticsearch.client.security.CreateTokenResponse;
+
 public class UserAuthenticationResult {
 	
 	private String access_token;
 	private String token_type;
-	private int expires_in;
+	private long expires_in;
 	private String realm;
 	private String error;
 	private String error_description;
+	private String refreshToken;
+	
+	public UserAuthenticationResult() {
+		
+	}
+	
+	public UserAuthenticationResult(CreateTokenResponse tokenResponse) {
+		this.access_token = tokenResponse.getAccessToken();
+		this.token_type = tokenResponse.getType();
+		this.expires_in = tokenResponse.getExpiresIn().getSeconds();
+		this.refreshToken = tokenResponse.getRefreshToken();
+	}
+	
+	public UserAuthenticationResult(String description) {
+		// create a result in case of error occurs
+		this.error = "true";
+		this.error_description = description;
+	}
 	
 	
+	
+	public String getRefreshToken() {
+		return refreshToken;
+	}
+
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
+	}
+
 	public String getAccess_token() {
 		return access_token;
 	}
@@ -22,10 +51,10 @@ public class UserAuthenticationResult {
 	public void setToken_type(String token_type) {
 		this.token_type = token_type;
 	}
-	public int getExpires_in() {
+	public long getExpires_in() {
 		return expires_in;
 	}
-	public void setExpires_in(int expires_in) {
+	public void setExpires_in(long expires_in) {
 		this.expires_in = expires_in;
 	}
 	public String getRealm() {

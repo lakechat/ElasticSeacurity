@@ -19,8 +19,7 @@ public class AuthenticationController {
 	
 	private static Logger logger = LogManager.getLogger(AuthenticationController.class);
 	
-	@Autowired
-	AuthenticationService authService;
+	
 	
 	@Autowired
 	UserService userService;

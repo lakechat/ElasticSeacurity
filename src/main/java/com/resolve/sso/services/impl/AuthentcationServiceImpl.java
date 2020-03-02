@@ -21,15 +21,17 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestClientBuilder.HttpClientConfigCallback;
+import org.springframework.stereotype.Component;
 
 import com.resolve.sso.entities.auth.Realm;
 import com.resolve.sso.entities.user.UserAuthenticationRequest;
 import com.resolve.sso.services.AuthenticationService;
 
-public class AuthentcationImpl implements AuthenticationService{
+@Component
+public class AuthentcationServiceImpl implements AuthenticationService{
 	
-	private static final Logger logger = LogManager.getLogger(AuthentcationImpl.class);
-	private static RestClient client;
+	private static final Logger logger = LogManager.getLogger(AuthentcationServiceImpl.class);
+	//private static RestClient client;
 	private static final String host = "localhost";
 	private static final int port = 9200;
 	
@@ -41,12 +43,13 @@ public class AuthentcationImpl implements AuthenticationService{
 	
 	@Override
 	public boolean authenticateUser(UserAuthenticationRequest authRequest) {
-		String realm = authRequest.getRealm();
+		String realmName = authRequest.getRealm();
 		String userName = authRequest.getUserName();
 		String password = authRequest.getPassword();
 		boolean result = false;
+		Realm realm = Realm.getRealm(realmName);
 		switch(realm) {
-		case Realm.NATIVE.getDisplayName():
+		case NATIVE:
 			result = basicAuth(userName, password);
 			break;
 		default:
@@ -75,8 +78,8 @@ public class AuthentcationImpl implements AuthenticationService{
 				);
 		
 		RestClient client = builder.build();
-		result = test();
-		closeClient();
+		result = test(client);
+		closeClient(client);
 		return result;
 	}
 	
@@ -88,8 +91,8 @@ public class AuthentcationImpl implements AuthenticationService{
 		builder.setDefaultHeaders(defaultHeaders);
 		RestClient client = builder.build();
 		
-		result = test();
-		closeClient();
+		result = test(client);
+		closeClient(client);
 		return result;
 	}
 	
@@ -104,12 +107,12 @@ public class AuthentcationImpl implements AuthenticationService{
 		
 		RestClient client = builder.build();
 		
-		result = test();
-		closeClient();
+		result = test(client);
+		closeClient(client);
 		return result;
 	}
 	
-	private  void closeClient() {
+	private  void closeClient(RestClient client) {
 		if(client != null) {
 			try {
 				client.close();
@@ -119,7 +122,7 @@ public class AuthentcationImpl implements AuthenticationService{
 		}
 	}
 	
-	private  boolean test() {
+	private  boolean test(RestClient client) {
 		try {
 			Request request = new Request("GET", "/");
 			Response response = client.performRequest(request);

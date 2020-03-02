@@ -17,7 +17,9 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestClientBuilder.HttpClientConfigCallback;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.security.AuthenticateResponse;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ElasticSearchHandler {
 	
 	private static final Logger logger = LogManager.getLogger(ElasticSearchHandler.class);

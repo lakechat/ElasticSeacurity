@@ -24,6 +24,14 @@ public enum Realm {
 		System.out.println(Realm.NATIVE.getDisplayName());
 	}
 	
+	public static Realm getRealm(String name) {
+		for(Realm realm : Realm.values()) {
+			if(realm.displayName.contentEquals(name))
+				return realm;
+		}
+		return null;
+	}
+	
 	
 
 }
