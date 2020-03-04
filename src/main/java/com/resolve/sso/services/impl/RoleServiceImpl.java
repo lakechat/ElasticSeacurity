@@ -1,42 +1,44 @@
 package com.resolve.sso.services.impl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.http.HttpHost;
-import org.apache.http.concurrent.Cancellable;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.security.DeleteRoleRequest;
 import org.elasticsearch.client.security.DeleteRoleResponse;
+import org.elasticsearch.client.security.GetRoleMappingsRequest;
+import org.elasticsearch.client.security.GetRoleMappingsResponse;
 import org.elasticsearch.client.security.GetRolesRequest;
 import org.elasticsearch.client.security.GetRolesResponse;
+import org.elasticsearch.client.security.PutRoleMappingRequest;
+import org.elasticsearch.client.security.PutRoleMappingResponse;
 import org.elasticsearch.client.security.PutRoleRequest;
 import org.elasticsearch.client.security.PutRoleResponse;
 import org.elasticsearch.client.security.RefreshPolicy;
+import org.elasticsearch.client.security.support.expressiondsl.RoleMapperExpression;
+import org.elasticsearch.client.security.support.expressiondsl.expressions.AnyRoleMapperExpression;
+import org.elasticsearch.client.security.support.expressiondsl.fields.FieldRoleMapperExpression;
 import org.elasticsearch.client.security.user.privileges.ApplicationResourcePrivileges;
 import org.elasticsearch.client.security.user.privileges.Role;
+import org.springframework.stereotype.Component;
 
-public class RoleServiceImpl {
+import com.resolve.sso.services.RoleService;
+
+@Component
+public class RoleServiceImpl implements RoleService {
 	
 	private static final HttpHost host = new HttpHost("localhost", 9200, "http");
 	protected RestHighLevelClient client;
 	
 	public static void main(String... args) {
 		RoleServiceImpl r = new RoleServiceImpl();
+		r.testCreateRole();
 		
-		//r.deleteRolesAsync("clicks_admin");
-		
-		List<String> appPrivileges = Arrays.asList("read","write","send");
-		List<String> appResources = Arrays.asList("dashboard","event center","report");
-		
-		System.out.println(r.createRole("testPutRole2","testApp", appPrivileges, appResources));
-		List<Role> roles = r.getRoles();
-		for(Role role : roles)
-		System.out.println(role);
 				
 	}
 	
@@ -44,6 +46,7 @@ public class RoleServiceImpl {
 		client = new RestHighLevelClient(RestClient.builder(host) );
 	}
 	
+	@Override
 	public List<Role> getRoles(String... roleNames){
 		try {
 		GetRolesRequest request = new GetRolesRequest(roleNames);
@@ -108,6 +111,53 @@ public class RoleServiceImpl {
 			
 		}
 		return result;	
+	}
+	
+	public void getRoleMapping() {
+		try {
+		final GetRoleMappingsRequest request = new GetRoleMappingsRequest("clicks_admin");
+		final GetRoleMappingsResponse response = client.security().getRoleMappings(request, RequestOptions.DEFAULT);
+		System.out.println(response.toString());
+		}catch(Exception e) {
+			
+		}
+	}
+	
+	private  void testRoleMapping() {
+		getRoleMapping();
+		
+	}
+	
+	private void testCreateRole() {
+		//r.deleteRolesAsync("clicks_admin");
+		
+				List<String> appPrivileges = Arrays.asList("read","write","send");
+				List<String> appResources = Arrays.asList("dashboard","event center","report");
+				
+				System.out.println(createRole("testPutRole3","fireStorm", appPrivileges, appResources));
+				List<Role> roles = getRoles();
+				for(Role role : roles)
+				System.out.println(role);
+	}
+	
+	private boolean putRoleMapping() {
+		try {
+			final RoleMapperExpression rules = AnyRoleMapperExpression.builder()
+					.addExpression(FieldRoleMapperExpression.ofUsername("user3"))
+					.addExpression(FieldRoleMapperExpression.ofGroups("cn=admins,dc=example,dc=com")).build();
+			final PutRoleMappingRequest request = new PutRoleMappingRequest("mapping_example", true,
+					Collections.singletonList("beats_system"), Collections.emptyList(), rules, null, RefreshPolicy.NONE);
+			final PutRoleMappingResponse response = client.security().putRoleMapping(request, RequestOptions.DEFAULT);
+			return response.isCreated();
+			
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+			return false;
+		}
+	}
+	
+	private void testPutRoleMapping() {
+		putRoleMapping();
 	}
 
 

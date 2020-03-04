@@ -8,13 +8,21 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.RestClientBuilder.HttpClientConfigCallback;
 import org.elasticsearch.client.security.GetPrivilegesRequest;
 import org.elasticsearch.client.security.GetPrivilegesResponse;
+import org.elasticsearch.client.security.GetUserPrivilegesResponse;
 import org.elasticsearch.client.security.PutPrivilegesRequest;
 import org.elasticsearch.client.security.PutPrivilegesResponse;
 import org.elasticsearch.client.security.RefreshPolicy;
@@ -33,9 +41,13 @@ public class PrivilegeServiceImpl {
 		p.createPrivileges(null);
 		
 		Set<ApplicationPrivilege> ps = p.getPrivileges("Meridian",null);
+		System.out.println("---------");
 		if(ps!=null)
 		for(ApplicationPrivilege ap : ps)
 			System.out.println(ap.getName());
+		System.out.println("---------");
+		System.out.println("---------");
+		p.getUserPrivileges();
 	}
 	
 	public PrivilegeServiceImpl() {
@@ -90,6 +102,37 @@ public class PrivilegeServiceImpl {
 		} catch (Exception e) {
 			System.out.println("create application privileges exception: "+e.getMessage());
 		}
+	}
+	
+	public void getUserPrivileges() {
+		try {
+			RestHighLevelClient client = getClient("user1","password");
+			GetUserPrivilegesResponse response = client.security().getUserPrivileges(RequestOptions.DEFAULT);
+			System.out.println("---------");
+			System.out.println(response);
+		}catch(Exception e) {
+			
+		}
+	}
+	
+	public RestHighLevelClient getClient(String user, String passwd) {
+		boolean result = false;
+		final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+		credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(user,passwd));
+		
+		RestClientBuilder builder = RestClient.builder(host)
+				.setHttpClientConfigCallback(new HttpClientConfigCallback() {
+					@Override
+					public HttpAsyncClientBuilder customizeHttpClient(
+							HttpAsyncClientBuilder httpClientBuilder) {
+						return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+					}
+				}
+				);
+		
+		RestHighLevelClient client = new RestHighLevelClient(builder);
+		
+		return client;
 	}
 
 }

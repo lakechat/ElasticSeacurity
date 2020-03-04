@@ -1,5 +1,7 @@
 package com.resolve.sso.services.impl;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -10,18 +12,24 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.security.CreateTokenResponse;
 import org.elasticsearch.client.security.GetUsersRequest;
 import org.elasticsearch.client.security.GetUsersResponse;
+import org.elasticsearch.client.security.PutUserRequest;
+import org.elasticsearch.client.security.PutUserResponse;
+import org.elasticsearch.client.security.RefreshPolicy;
 import org.elasticsearch.client.security.user.User;
+import org.elasticsearch.client.security.user.privileges.ApplicationResourcePrivileges;
+import org.elasticsearch.client.security.user.privileges.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.resolve.sso.entities.user.UserAuthenticationRequest;
 import com.resolve.sso.entities.user.UserAuthenticationResult;
 import com.resolve.sso.services.AuthenticationService;
+import com.resolve.sso.services.RoleService;
 import com.resolve.sso.services.TokenService;
 import com.resolve.sso.services.UserService;
-import com.resolve.sso.utils.UserConstants;
 import com.resolve.sso.utils.ElasticSearchHandler;
 import com.resolve.sso.utils.JsonUtils;
+import com.resolve.sso.utils.UserConstants;
 
 @Component
 public class UserServiceImpl implements UserService{
@@ -31,18 +39,22 @@ public class UserServiceImpl implements UserService{
 	@Autowired
 	private AuthenticationService authService;
 	
-	@Autowired
-	private ElasticSearchHandler esHandler;
 	
 	@Autowired
 	private TokenService tokenService;
 	
+	@Autowired
+	RoleService roleService;
+	
 	public static void main(String[] args) {
 		UserServiceImpl usi = new UserServiceImpl();
-		Set<User> users = usi.getUser("user3");
-		for(User user : users)
-			System.out.println(user.getRoles());
-			}
+//		Set<User> users = usi.getUser("user3");
+//		for (User user : users)
+//			System.out.println(user.getRoles());
+		
+		usi.createUser("user3", "password");
+	}
+	
 	
 	public static void testUser() {
 		UserServiceImpl  user = new UserServiceImpl();
@@ -73,7 +85,7 @@ public class UserServiceImpl implements UserService{
 				request = new GetUsersRequest();
 			else
 				request = new GetUsersRequest(userName);
-			GetUsersResponse response = esHandler.getHighLevelClient().security()
+			GetUsersResponse response = ElasticSearchHandler.getHighLevelClient().security()
 												 .getUsers(request, RequestOptions.DEFAULT);
 			return response.getUsers();
 
@@ -100,6 +112,7 @@ public class UserServiceImpl implements UserService{
 						loadUserPrivileges(authRequest.getUserName(),token);
 						return null;
 					};
+					//loadUserPrivileges(authRequest.getUserName(),token);
 					
 				}catch(Exception e) {
 					logger.error("creating authResult from tokenResponse exception: "+e.getMessage());
@@ -121,11 +134,38 @@ public class UserServiceImpl implements UserService{
 		Set<User> users = getUser(userName);
 		if(users != null) {
 			if( !users.isEmpty()) {
-				String[] roles = (String[])users.toArray();
+				User[] userNames = users.toArray(new User[0]);
+				// there is only one user 
+				String[] roleNames = userNames[0].getRoles().toArray(new String[0]);
 				
-				//2. get privileges
+				if(logger.isDebugEnabled()) {
+					logger.debug("[loadUserPrivileges] user{} has roles: {}", userNames[0].getUsername(), roleNames);
+				}
+				//2. get role privileges
+				List<Role> roles = roleService.getRoles(roleNames);
+				for(Role role : roles) {
+					Set<ApplicationResourcePrivileges> applicationPrivileges = role.getApplicationPrivileges();
+					if (applicationPrivileges != null && !applicationPrivileges.isEmpty()) {
+						for (ApplicationResourcePrivileges ap : applicationPrivileges) {
+							String application = ap.getApplication();
+							Set<String> privileges = ap.getPrivileges();
+							if (logger.isDebugEnabled()) {
+								logger.debug("[loadUserPrivileges] role {} has application - {}, privileges - {} ",
+											role.getName(), application,privileges);
+							}
+							//3. save to Redis
+							// key format: Prefix,userName:AppName
+							// value [set of privileges]
+							
+						}
+					}else {
+						if (logger.isDebugEnabled()) {
+							logger.debug("[loadUserPrivileges] role {} does not have application privileges ",
+										role.getName());
+						}
+					}
+				}
 				
-				//3. save to Redis
 			}else {
 				logger.error("[loadUserPrivileges], user {} does not own any roles.",userName);
 			}
@@ -136,6 +176,23 @@ public class UserServiceImpl implements UserService{
 		}
 		
 		
+	}
+	
+	public boolean createUser(String userName, String password) {
+		try {
+			char[] pass = password.toCharArray();
+			User user = new User(userName, Arrays.asList("testPutRole2","testPutRole3","superuser")) ;
+			PutUserRequest request = PutUserRequest.withPassword(user, pass, true, RefreshPolicy.NONE);
+			PutUserResponse response = ElasticSearchHandler.getHighLevelClient().security()
+										.putUser(request, RequestOptions.DEFAULT);
+
+
+			boolean result = response.isCreated();
+			return result;
+		}catch(Exception e) {
+			logger.error("[createUser] create user exception: "+e.getMessage());
+			return false;
+		}
 	}
 	
 	
