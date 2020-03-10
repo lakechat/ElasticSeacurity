@@ -38,9 +38,9 @@ public class PrivilegeServiceImpl {
 	
 	public static void main(String... args) {
 		PrivilegeServiceImpl p = new PrivilegeServiceImpl();
-		p.createPrivileges(null);
+		//p.createPrivileges(null);
 		
-		Set<ApplicationPrivilege> ps = p.getPrivileges("Meridian",null);
+		Set<ApplicationPrivilege> ps = p.getPrivileges("meridian",null);
 		System.out.println("---------");
 		if(ps!=null)
 		for(ApplicationPrivilege ap : ps)
@@ -79,13 +79,14 @@ public class PrivilegeServiceImpl {
 		}
 	}
 	
-	//application name must start with lower case letters
+	//application name must start with lower case letters, 'action' string must contain either "*","/" or ":"
+	// Application privilege names must match the pattern ^[a-z][a-zA-Z0-9_.-]*$
 	public void createPrivileges(List<ApplicationPrivilege> aps) {
 		try {
 			final List<ApplicationPrivilege> privileges = new ArrayList<>();
-			privileges.add(ApplicationPrivilege.builder().application("meridian").privilege("all")
-					.actions("action:login","action:write","action:read","action:delete")
-					.metadata(Collections.singletonMap("description", "sample")).build());
+			privileges.add(ApplicationPrivilege.builder().application("meridian").privilege("*")
+					.actions("action:login","*")
+					.metadata(Collections.singletonMap("description", "sample2")).build());
 			privileges.add(ApplicationPrivilege.builder().application("fireStorm").privilege("write")
 					.actions("action:write_update").build());
 			privileges.add(ApplicationPrivilege.builder().application("fireStorm").privilege("read")
@@ -98,6 +99,8 @@ public class PrivilegeServiceImpl {
 			final boolean status = putPrivilegesResponse.wasCreated("meridian", "all");
 			final boolean status2 = putPrivilegesResponse.wasCreated("fireStorm", "write");
 			final boolean status3 = putPrivilegesResponse.wasCreated("fireStorm", "read");
+			// response data
+			// {"fireStorm":{"read":{"created":false},"write":{"created":false}},"meridian":{"all3":{"created":false}}}
 			System.out.println("application privileges create: "+status);
 		} catch (Exception e) {
 			System.out.println("create application privileges exception: "+e.getMessage());

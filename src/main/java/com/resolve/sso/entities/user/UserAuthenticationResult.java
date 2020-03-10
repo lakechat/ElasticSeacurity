@@ -11,6 +11,7 @@ public class UserAuthenticationResult {
 	private String error;
 	private String error_description;
 	private String refreshToken;
+	private String key;
 	
 	public UserAuthenticationResult() {
 		
@@ -31,6 +32,14 @@ public class UserAuthenticationResult {
 	
 	
 	
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
 	public String getRefreshToken() {
 		return refreshToken;
 	}

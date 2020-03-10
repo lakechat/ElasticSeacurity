@@ -9,4 +9,5 @@ import com.resolve.sso.entities.user.UserAuthenticationResult;
 public interface UserService {
 
 	public UserAuthenticationResult authenticateUser(UserAuthenticationRequest authRequest);
+	public UserAuthenticationResult authenticateUserJWT(UserAuthenticationRequest authRequest);
 }

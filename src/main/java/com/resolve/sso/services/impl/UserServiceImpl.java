@@ -1,5 +1,6 @@
 package com.resolve.sso.services.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -28,8 +29,12 @@ import com.resolve.sso.services.RoleService;
 import com.resolve.sso.services.TokenService;
 import com.resolve.sso.services.UserService;
 import com.resolve.sso.utils.ElasticSearchHandler;
-import com.resolve.sso.utils.JsonUtils;
+import com.resolve.sso.utils.JWTUtil;
+import com.resolve.sso.utils.JsonUtil;
 import com.resolve.sso.utils.UserConstants;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 
 @Component
 public class UserServiceImpl implements UserService{
@@ -120,7 +125,41 @@ public class UserServiceImpl implements UserService{
 					authResult.setRealm(authRequest.getRealm());
 				}
 			}
-			System.out.println(JsonUtils.getJson(tokenResponse));
+			System.out.println(JsonUtil.getJson(tokenResponse));
+		}else {
+			logger.error(UserConstants.INVALID_USER_CREDENTIAL);
+			authResult = new UserAuthenticationResult(UserConstants.INVALID_USER_CREDENTIAL);
+			authResult.setRealm(authRequest.getRealm());
+		}
+		return authResult;
+	}
+	
+	public UserAuthenticationResult authenticateUserJWT(UserAuthenticationRequest authRequest) {
+		UserAuthenticationResult authResult = null;
+		boolean isValidUser = authService.authenticateUser(authRequest);
+		if(isValidUser) {
+			CreateTokenResponse tokenResponse = tokenService.createAccessToken(authRequest);
+			if(tokenResponse != null) {
+				try {
+					
+					final String token = tokenResponse.getAccessToken();
+					// load up user roles and privileges into Redis if user is verified
+				
+					String jws = loadUserPrivileges(authRequest.getUserName(),token);
+					if(StringUtils.isNotBlank(jws)) {
+						authResult = new UserAuthenticationResult(tokenResponse);
+						authResult.setRealm(authRequest.getRealm());
+						authResult.setAccess_token(jws);
+						authResult.setKey(JWTUtil.getPubKey());
+					}
+					
+				}catch(Exception e) {
+					logger.error("creating authResult from tokenResponse exception: "+e.getMessage());
+					authResult = new UserAuthenticationResult(e.getMessage());
+					authResult.setRealm(authRequest.getRealm());
+				}
+			}
+			System.out.println(JsonUtil.getJson(tokenResponse));
 		}else {
 			logger.error(UserConstants.INVALID_USER_CREDENTIAL);
 			authResult = new UserAuthenticationResult(UserConstants.INVALID_USER_CREDENTIAL);
@@ -129,8 +168,9 @@ public class UserServiceImpl implements UserService{
 		return authResult;
 	}
 
-	private void loadUserPrivileges(String userName, String accessToken) {
+	private String loadUserPrivileges(String userName, String accessToken) {
 		//1. get roles
+		String jws = null;
 		Set<User> users = getUser(userName);
 		if(users != null) {
 			if( !users.isEmpty()) {
@@ -143,12 +183,15 @@ public class UserServiceImpl implements UserService{
 				}
 				//2. get role privileges
 				List<Role> roles = roleService.getRoles(roleNames);
+				List<String> privilegeList = new ArrayList<>();
 				for(Role role : roles) {
+					String roleName = role.getName();
 					Set<ApplicationResourcePrivileges> applicationPrivileges = role.getApplicationPrivileges();
 					if (applicationPrivileges != null && !applicationPrivileges.isEmpty()) {
 						for (ApplicationResourcePrivileges ap : applicationPrivileges) {
 							String application = ap.getApplication();
 							Set<String> privileges = ap.getPrivileges();
+							privilegeList.addAll(privileges);
 							if (logger.isDebugEnabled()) {
 								logger.debug("[loadUserPrivileges] role {} has application - {}, privileges - {} ",
 											role.getName(), application,privileges);
@@ -165,6 +208,12 @@ public class UserServiceImpl implements UserService{
 						}
 					}
 				}
+				// create JWT claim
+				Claims claims = Jwts.claims();
+				claims.put("role", roleNames);
+				claims.put("privileges", privilegeList);
+				
+				jws = JWTUtil.generateJWT(null, claims);
 				
 			}else {
 				logger.error("[loadUserPrivileges], user {} does not own any roles.",userName);
@@ -175,7 +224,7 @@ public class UserServiceImpl implements UserService{
 			logger.error("[loadUserPrivileges], user {} is does not exist in ES.",userName);
 		}
 		
-		
+		return jws;
 	}
 	
 	public boolean createUser(String userName, String password) {

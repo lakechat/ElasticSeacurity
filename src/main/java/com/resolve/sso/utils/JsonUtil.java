@@ -13,9 +13,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
-public class JsonUtils {
+public class JsonUtil {
 	
-	private static final Logger logger = LogManager.getLogger(JsonUtils.class);
+	private static final Logger logger = LogManager.getLogger(JsonUtil.class);
 	
 	// get Object from json string
 	public static <T> T getObjectFromJson(String jsonString, Class<T> classType) {
